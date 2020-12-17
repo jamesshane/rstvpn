@@ -1,13 +1,30 @@
 #!/bin/bash
 
-eval "sudo killall openvpn";
-sleep 2;
+##kill any openvpn connection
+cmd="sudo killall openvpn";
+eval "${cmd}" &
+sleep 5;
+
+##get new random connection
 OIFS=$IFS; 
 IFS=$'\n'; 
 array=($(find . -name "*.ovpn")); 
 IFS=$OIFS; 
 rand=$[$RANDOM % ${#array[@]}];
 echo "${array[$rand]}";
-eval "sudo openvpn --config '${array[$rand]}' --float --auth-user-pass pass.txt &"
+
+##start new connection
+cmd="sudo openvpn --config '${array[$rand]}' --float --auth-user-pass pass.txt";
+echo $cmd;
+eval "${cmd}" & disown;
+
+##wait for an hour
+TIMER=0;
+while [ $TIMER -le 61 ]
+do
+    sleep 60
+    TIMER=$(( $TIMER + 1 ))
+    echo "TIMER $TIMER"
+done
 #sleep 300;
-#eval "bash $0"
+eval "bash $0"
